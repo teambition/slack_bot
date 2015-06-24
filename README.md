@@ -1,4 +1,4 @@
-# slack\_bot
+# Talk.ai Bot(forked from slack\_bot)
 立志成为一个可被调戏且有用的Bot
 
 ### 介绍
