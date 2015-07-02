@@ -32,7 +32,7 @@ def get_content(channel):
     data = r.json()['data']
 
     for i in data:
-        text = (u'<{seo_url}|{title}> 赞{bury_count} 踩{digg_count} - '
+        text = (u'<{title}> 赞{bury_count} 踩{digg_count} - '
                 '{source} {datetime}').format(**i)
         image_url = i.get('middle_image', '')
         if isinstance(image_url, dict):

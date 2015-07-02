@@ -30,12 +30,13 @@ WEATHER_API = 'http://api.map.baidu.com/telematics/v3/weather'
 DIRECTION = 0
 NODIRECTION = 1
 NOSCHEME = 2
+UNKNOWN = 3
 
 TagList = pickle.load(
     open(os.path.join(HERE, 'data' + os.path.sep + 'baidu_tag.pkl'), 'rb'))
 
 
-def address2geo(ak, address, city=u'北京'):
+def address2geo(ak, address, city=u'上海'):
     res = requests.get(GEOCODING_API, params={
         'city': city, 'address': address, 'ak': ak, 'output': 'json'})
     data = res.json()
@@ -64,8 +65,8 @@ def place_suggestion(ak, pos):
 
 
 def place_direction(ak, origin, destination, mode='transit', tactics=11,
-                    region='北京', origin_region='北京',
-                    destination_region='北京'):
+                    region='上海', origin_region='上海',
+                    destination_region='上海'):
     params = {
         'origin': origin, 'destination': destination, 'ak': ak,
         'output': 'json', 'mode': mode, 'tactics': tactics
@@ -79,6 +80,8 @@ def place_direction(ak, origin, destination, mode='transit', tactics=11,
         params.update({'region': region})
     res = requests.get(DIRECTION_API, params=params).json()
     result = res.get('result', [])
+    if len(result) == 0:
+        return (UNKNOWN, None, None)
 
     # type=1起终点模糊
     if res['type'] == 1:
@@ -140,7 +143,7 @@ def place_direction(ak, origin, destination, mode='transit', tactics=11,
 
 
 # 车联网API
-def point(ak, keyword, city=u'北京'):
+def point(ak, keyword, city=u'上海'):
     '''兴趣点查询'''
     res = requests.get(POINT_API, params={
         'keyword': keyword, 'city': city, 'ak': ak, 'output': 'json'})
@@ -164,14 +167,14 @@ def travel_attractions(ak, id):
     ])
 
 
-def travel_city(ak, location=u'北京', day='all'):
+def travel_city(ak, location=u'上海', day='all'):
     '''X日游'''
     res = requests.get(TRAVEL_CITY_API, params={
         'location': location, 'day': day, 'ak': ak, 'output': 'json'})
     return res.json()['result']
 
 
-def local(ak, tag, keyword, location=u'北京', radius=3000, city=u'北京'):
+def local(ak, tag, keyword, location=u'上海', radius=3000, city=u'上海'):
     '''周边检索'''
     res = requests.get(LOCAL_API, params={
         'cityName': city, 'radius': radius, 'tag': tag,
@@ -179,7 +182,7 @@ def local(ak, tag, keyword, location=u'北京', radius=3000, city=u'北京'):
     return res.json()['pointList']
 
 
-def weather(ak, location=u'北京'):
+def weather(ak, location=u'上海'):
     # location可是是城市名, 也可以是geo
     res = requests.get(WEATHER_API, params={
         'location': location, 'ak': ak, 'output': 'json'})
@@ -214,6 +217,7 @@ def handle(data, cache, app, **kwargs):
         mode = 'transit'
 
     result = place_direction(ak, origin, dest, mode)
+    print type(result)
     if result[0] == NOSCHEME:
         text = '\n'.join(['输入的太模糊了, 你要找得起点可以选择:',
                           '|'.join(result[1]),
@@ -229,6 +233,8 @@ def handle(data, cache, app, **kwargs):
             result[1] + result[2]
 
         text = '\n'.join(msg)
+    elif result[0] == UNKNOWN:
+        text = '小艾还没有去过那里，嘤嘤嘤~╥﹏╥... '
     else:
         if isinstance(result[1], list):
             _result = '\n'.join(result[1])

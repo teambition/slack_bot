@@ -43,7 +43,7 @@ def test(data):
 
 
 def handle(data, **kwargs):
-    mobai_icon = ':mb:'
+    mobai_icon = '__(:3」∠)_'
     return mobai_icon * random.randrange(1, 10)
 
 if __name__ == '__main__':
