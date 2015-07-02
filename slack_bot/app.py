@@ -5,7 +5,7 @@ from functools import partial
 
 from flask import Flask
 
-from flask_slackbot import SlackBot
+from flask_slackbot import TalkBot
 
 import settings
 import plugins
@@ -31,10 +31,10 @@ def create_app(config=None):
     cache.init_app(app)
     app.plugin_modules = plugin_modules
 
-    slackbot = SlackBot(app)
+    slackbot = TalkBot(app)
     _callback = partial(callback, app=app)
     slackbot.set_handler(_callback)
-    slackbot.filter_outgoing(_filter)
+    # slackbot.filter_outgoing(_filter)
 
     return app
 
@@ -47,16 +47,13 @@ def replaced(message, rep_words):
 
 def callback(kwargs, app):
     s = kwargs['text']
-    if isinstance(s, unicode):
-        s = s.encode('utf-8')
-    # remove metion block
-    s = re.sub(r'(@.*?)\W', '', s)
-    private = any([word in s for word in ['private', '私聊']])
-    attachmented = any([word in s for word in ['带图', '附件']])
     data = {
-        'message': replaced(s, ['private', '私聊', '带图', '附件']).strip()
+        'message': ''
     }
+    if isinstance(s, unicode):
+        data['message'] = s.encode('utf-8').strip()
 
+    print data
     if not data['message']:
         return {'text': ''}
 
@@ -68,11 +65,7 @@ def callback(kwargs, app):
                 attaches = None
             else:
                 text, attaches = ret
-            text = '!' + text
-            if attachmented and attaches:
-                return {'text': ' ', 'private': private,
-                        'attachments': attaches}
-            return {'text': text, 'private': private}
+            return {'text': text}
 
     return {'text': '!呵呵'}
 
